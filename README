@@ -1,0 +1,25 @@
+## How it works ##
+### Archive ###
+- User selects assets in FCSvr and clicks Archive. FCSvr moves the asset to it's
+Archive Device and marks it as archived
+- archive.sh writes the file paths to /tmp/fcs_toArchive
+- launchd job (fi.tvtools.finalstore) runs runner.py every n seconds
+- finalstore.py forwards the file list to a customized awcli.sh, waits for the job
+to finish and runs growlnotify to let the user know of what happened
+
+### Restore ###
+- User selects assets in FCSvr and clicks Restore. 
+- restore.sh writes the file paths to /tmp/fcs_toRestore
+- launchd job (fi.tvtools.finalstore) runs finalstore.py every n seconds
+- finalstore.py forwards the file list to a customized awcli.sh, waits for the job
+to finish and runs growlnotify to let the user know what happened
+
+## Installation ##
+
+- Drag the finalstore folder to /Library/Application Support/TV Tools/finalstore
+- In FCSvr, open Administration > Devices > Archive and set the pahts of the archive and restore
+scripts
+- Configure your PressSTORE archive plan
+
+##Configuration##
+...
