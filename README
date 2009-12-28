@@ -3,7 +3,7 @@
 - User selects assets in FCSvr and clicks Archive. FCSvr moves the asset to it's
 Archive Device and marks it as archived
 - archive.sh writes the file paths to /tmp/fcs_toArchive
-- launchd job (fi.tvtools.finalstore) runs runner.py every n seconds
+- launchd job (fi.tvtools.finalstore) runs finalstore.py every n seconds
 - finalstore.py forwards the file list to a customized awcli.sh, waits for the job
 to finish and runs growlnotify to let the user know of what happened
 

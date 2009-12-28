@@ -1,7 +1,7 @@
 #!/usr/bin/env python -Wall
 # This is only run from launchd
 # @author Filipp Lepalaan <filipp@tvtools.fi>
-# @updated 10.12.2009
+# @updated 28.12.2009
 # @created 09.12.2009
 
 import sys, time, os, glob, traceback
@@ -17,7 +17,7 @@ def growl(str):
 	try:
 		Popen(cmd, shell=False).communicate()
 	except Exception, e:
-		print "Growl failed"
+		print "Failed to initialize Growl"
 	
 
 """
