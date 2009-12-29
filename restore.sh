@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Collect restored assets to a text file
+# Collect restore asset to a text file
 DST="/tmp/finalstore/restore"
 if [ ! -d $DST ]; then
 	mkdir -p $DST

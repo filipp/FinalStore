@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Collect archived assets to a text file
+# Collect archive asset to a text file
 DST="/tmp/finalstore/archive"
 if [ ! -d $DST ]; then
 	mkdir -p $DST

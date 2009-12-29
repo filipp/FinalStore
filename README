@@ -1,25 +1,38 @@
+## Features ##
+- Uses Growl for status notifications
+- Smart enough to only archive an asset once
+- Allows running archive and FCSvr services on separate machines
+- Keeps a log of tasks
+- Supports archiving/restoring multiple assets at once
+
 ## How it works ##
 ### Archive ###
 - User selects assets in FCSvr and clicks Archive. FCSvr moves the asset to it's
 Archive Device and marks it as archived
-- archive.sh writes the file paths to /tmp/fcs_toArchive
-- launchd job (fi.tvtools.finalstore) runs finalstore.py every n seconds
+- archive.sh writes the archived file path(s) to /tmp/finalstore/archive/<timestamp>.txt
+- launchd job (fi.tvtools.finalstore) runs finalstore.py every 20 seconds
 - finalstore.py forwards the file list to a customized awcli.sh, waits for the job
 to finish and runs growlnotify to let the user know of what happened
 
 ### Restore ###
 - User selects assets in FCSvr and clicks Restore. 
-- restore.sh writes the file paths to /tmp/fcs_toRestore
+- restore.sh writes the file paths to /tmp/finalstore/restore/<timestamp>.txt
 - launchd job (fi.tvtools.finalstore) runs finalstore.py every n seconds
 - finalstore.py forwards the file list to a customized awcli.sh, waits for the job
 to finish and runs growlnotify to let the user know what happened
 
 ## Installation ##
-
-- Drag the finalstore folder to /Library/Application Support/TV Tools/finalstore
+- Drag the FinalStore folder to /Library/Application Support/TV Tools
 - In FCSvr, open Administration > Devices > Archive and set the pahts of the archive and restore
 scripts
 - Configure your PressSTORE archive plan
+- In System Preferences > Final Cut Server, increase the Retry Count and Timeout values (for example 100/10). This is necessary for the restore process, to give PresSTORE time to retrieve the assets.
+- Edit FinalStore/config.py to match your configuration
+- Load the launchd job. Either create an alias or copy fi.tvtools.finalstore.plist into /Library/LaunchDaemons and:
+  
+  sudo launchctl load -w /Library/LaunchDaemons/fi.tvtools.finalstore.plist
 
-##Configuration##
-...
+- Install Growl + growlnotify on the Final Cut Server. Optionally enable network notifications, if you want to send them to your Final Cut Server.app users.
+
+## Why is this thing so complicated? ##
+The main reason is because Final Cut Server only sends one archive/restore asset path at a time. This means we need a lot more files to keep track of them.

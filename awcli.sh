@@ -3,6 +3,8 @@
 # The differences are:
 # - returning the Job ID
 # - support for servers running on other hosts
+# - store the "asset id" as the description
+# - separating configuration data into an external file
 # 
 # See the file "license.txt" for information on usage and
 # redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -12,6 +14,11 @@
 #
 
 source /Library/Application\ Support/TV\ Tools/FinalStore/config.py
+
+if [[ -z $AWUSER ]]; then
+  echo "Configuration incomplete, please check config.py"
+  exit 1
+fi
 
 LC_ALL="C"; export LC_ALL
 
@@ -24,15 +31,7 @@ clierr() {
     exit 1
 }
 
-#
-# Locate the nsdchat utility
-#
-
-if test -z "$AWPST_HOME"; then
-    nc="${NC} -s awsock:/${USER}:${PASSWORD}@${HOST}:9001"
-else
-    nc=$AWPST_HOME/bin/nsdchat
-fi
+nc="${NC} -s awsock:/${AWUSER}:${AWPASSWORD}@${AWHOST}:${AWPORT}"
 
 #
 # Check the operation.
@@ -77,24 +76,45 @@ case $task in
         if test $? -ne 0; then
             clierr
         fi
+        # Create restore selection for checking if asset's been already archived
+        rs=`$nc -c RestoreSelection create localhost`
+        if test $? -ne 0; then
+            clierr
+        fi
         # Add files to it
         adfile=0
         for file do
+            if [[ ! -z $FSLOG ]]; then
+              echo "$(date) $task $file" >> $FSLOG
+            fi
             if test ! -r "$file"; then
                 echo "$0: $file: no such file"
             elif test ! -f "$file"; then
                 echo "$0: $file: not a plain file"
             else
-                aentry=`$nc -c ArchiveSelection $as addentry "{$file}"`
-                if test $? -ne 0; then
-                    clierr
+                aid=$(echo -n "$file" | md5)
+                # Check if asset has already been archived
+                dummy=`$nc -c RestoreSelection $rs findentry $aplan {description == $aid}`
+                if [[ -z "$dummy" ]]; then
+                  clierr
                 fi
-                adfile=`expr $adfile + 1`
+                if [[ "$dummy" -lt 1 ]]; then
+                  aentry=`$nc -c ArchiveSelection $as addentry "{$file}" description $aid`
+                  if test $? -ne 0; then
+                      clierr
+                    fi
+                  adfile=`expr $adfile + 1`
+                else
+                  # Asset already in archive, just delete from FCSvr archive device
+                  rm "$file"
+                fi
             fi
         done
         # Submit archive job
         if test $adfile -eq 0; then
-            echo "$0: no files selected for $task"
+            # Nothing to archive - either no valid files, or all already archived
+            echo "-1"
+            exit 0
         else
             jobid=`$nc -c ArchiveSelection $as submit 1`
             echo $jobid
@@ -117,6 +137,9 @@ case $task in
         fi
         # Add files to it
         for file do
+            if [[ ! -z $FSLOG ]]; then
+              echo "$(date) $task $file" >> $FSLOG
+            fi
             aentry=`$nc -c ArchiveEntry handle localhost "{$file}" $dbase`
             if test $? -ne 0; then
                 clierr

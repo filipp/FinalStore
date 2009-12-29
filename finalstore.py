@@ -18,7 +18,6 @@ def growl(str):
 		Popen(cmd, shell=False).communicate()
 	except Exception, e:
 		print "Failed to initialize Growl"
-	
 
 """
 	Forward the files to awcli
@@ -41,11 +40,18 @@ def doit(task, f, ap):
 	r = Popen([awcli, task, ap] + assets, stdout=PIPE, shell=False).communicate()
 	jid = r[0].strip()
 	
+	if jid == "-1":
+		growl("Asset already archived")
+		sys.exit(0)
+	
 	print task + " job ID is " + jid
-	growl("Started %s job %s (%d assets)" % (task, jid, len(assets)))
+	ac = len(assets)
+	sfx = "s"
+	if ac == 1 : sfx = ""
+	growl("Started %s job %s (%d asset%s)" % (task, jid, ac, sfx))
 	
 	# Wait for the job to finish
-	sock = "awsock:/%s:%s@%s:9001" % (USER, PASSWORD, HOST)
+	sock = "awsock:/%s:%s@%s:%s" % (AWUSER, AWPASSWORD, AWHOST, AWPORT)
 	cmd = "Job %s status" % (jid)
 	
 	while True:
